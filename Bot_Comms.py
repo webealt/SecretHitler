@@ -1,31 +1,49 @@
-# IMPORT DISCORD.PY. ALLOWS ACCESS TO DISCORD'S API.
+#Declaratons
 import discord
+from gameEngine import gameStream
+from utils import *
+load_dotenv()
 
-# GETS THE CLIENT OBJECT FROM DISCORD.PY. CLIENT IS SYNONYMOUS WITH BOT.
-bot = discord.Client(intents=discord.Intents.default())
+server = server()
+client = server.client
 
-@bot.event
+'''
+Functions
+--> command(message: message object, cmd: command string) /// This processes commands
+
+'''
+async def command(message, cmd):
+	if message.channel.name == server.useChannel:
+		print("BotComms recieved this command: " + cmd)
+
+		if cmd == "hello":
+			await msgChan(message, "Hi how are ya?")
+
+		elif cmd == "dmTest":
+			await msgDm(message, "Hello There")
+
+		elif cmd == "loadTest":
+			await gameStream(message, "load")
+'''
+Events
+'''
+
+@client.event
 async def on_ready():
-	# CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
 	guild_count = 0
 
-	# LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
-	for guild in bot.guilds:
-		# PRINT THE SERVER'S ID AND NAME.
+	for guild in client.guilds:
 		print(f"- {guild.id} (name: {guild.name})")
-
-		# INCREMENTS THE GUILD COUNTER.
 		guild_count = guild_count + 1
 
-	# PRINTS HOW MANY GUILDS / SERVERS THE BOT IS IN.
-	print("SampleDiscordBot is in " + str(guild_count) + " guilds.")
-	
-@bot.event
-async def on_message(message):
-	# CHECKS IF THE MESSAGE THAT WAS SENT IS EQUAL TO "HELLO".
-	if message.content == "hello":
-		# SENDS BACK A MESSAGE TO THE CHANNEL.
-		await message.channel.send("Hi")
+	print("Secret Hitler Bot is in " + str(guild_count) + " guilds.")
 
-# EXECUTES THE BOT WITH THE SPECIFIED TOKEN. TOKEN HAS BEEN REMOVED AND USED JUST AS AN EXAMPLE.
-bot.run("ODg1NzEwMTg3NDM1MDE2MjEy.GeRcG-.zi1y_Hadf8D5UwBxBlr_9cDILaV-6e6qh_bmkk")
+# EVENT LISTENER FOR WHEN A NEW MESSAGE IS SENT TO A CHANNEL and DMs.
+@client.event
+async def on_message(message):
+	if not message.guild:
+		return
+	elif message.content[0] == "!":
+		await command(message, message.content[1:])
+		
+client.run(server.DISCORD_TOKEN)
